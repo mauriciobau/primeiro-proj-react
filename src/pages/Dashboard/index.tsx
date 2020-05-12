@@ -1,55 +1,62 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api'
 
 import logoImg from '../../assets/logo.svg'
 
 import { Title, Form, Repositories } from './styles'
 
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories ] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([... repositories, repository]);
+    setNewRepo('');
+  }
+
   return (
     <>
   <img src={logoImg} alt="Github Explorer" />
   <Title>Eplore repositórios no Guithub</Title>
 
-  <Form>
-    <input placeholder="Digite o nome do repositório" />
+  <Form onSubmit={handleAddRepository}>
+    <input
+    value={newRepo}
+    onChange={(e) => setNewRepo(e.target.value)}
+    placeholder="Digite o nome do repositório" />
     <button type="submit">Pesquisar</button>
   </Form>
 
   <Repositories>
-    <a href="teste">
-      <img src="https://avatars1.githubusercontent.com/u/43859916?s=60&u=4546d74d63cf44eac5231583e403dd163901399f&v=4"
-      alt="Maurício Baú"/>
+    {repositories.map(repository => (
+      <a key={repository.full_name} href="teste">
+      <img src={repository.owner.avatar_url}
+        alt={repository.owner.login}/>
 
       <div>
-        <strong>mauriciobau/ndm</strong>
-        <p>K4kgjfsdn sadjfaskd jwdkrfj wakgtj</p>
+      <strong>{repository.full_name}</strong>
+      <p>{repository.description}</p>
       </div>
 
       <FiChevronRight size={20} />
     </a>
-    <a href="teste">
-      <img src="https://avatars1.githubusercontent.com/u/43859916?s=60&u=4546d74d63cf44eac5231583e403dd163901399f&v=4"
-      alt="Maurício Baú"/>
-
-      <div>
-        <strong>mauriciobau/ndm</strong>
-        <p>K4kgjfsdn sadjfaskd jwdkrfj wakgtj</p>
-      </div>
-
-      <FiChevronRight size={20} />
-    </a>
-    <a href="teste">
-      <img src="https://avatars1.githubusercontent.com/u/43859916?s=60&u=4546d74d63cf44eac5231583e403dd163901399f&v=4"
-      alt="Maurício Baú"/>
-
-      <div>
-        <strong>mauriciobau/ndm</strong>
-        <p>K4kgjfsdn sadjfaskd jwdkrfj wakgtj</p>
-      </div>
-
-      <FiChevronRight size={20} />
-    </a>
+    ))}
   </Repositories>
   </>
   );
